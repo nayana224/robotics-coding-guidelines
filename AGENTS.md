@@ -71,6 +71,13 @@ follow `docs/repository-workflow.md` before editing.
   implications; do not repeat obvious code.
 - Follow `docs/code-style.md` for language, ROS 2, YAML, launch, and build rules.
 - Follow `docs/python-docstring-style.md` for Python comments and docstrings.
+- For README, package documentation, `docs/` reorganization, documentation
+  cleanup, duplicate removal, or SDK/setup guides, follow
+  `docs/documentation-style.md`.
+- Keep one detailed canonical document per topic and link to it instead of
+  copying the same explanation across root README, package README, and `docs/`.
+- Before deleting or renaming documentation, inspect the current file, preserve
+  unique information, search inbound links, update links, then remove the file.
 
 ## Validation
 
@@ -97,6 +104,8 @@ follow `docs/repository-workflow.md` before editing.
 - `docs/code-review.md`: review checklist and output format
 - `docs/commit-style.md`: lightweight commit message rules
 - `docs/repository-workflow.md`: large and multi-package repository workflow
+- `docs/documentation-style.md`: README/docs structure, single-source-of-truth,
+  duplicate cleanup, SDK/setup documentation, and safe document deletion
 - `docs/control-style.md`: controller and timing-sensitive loop rules
 - `docs/python-docstring-style.md`: Korean comments and Python docstrings
 - `docs/urdf-xacro-style.md`: URDF, Xacro, SDF, frames, and XML style
