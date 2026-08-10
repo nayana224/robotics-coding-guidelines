@@ -30,6 +30,7 @@ new_robot_ws/
     ├── code-review.md
     ├── commit-style.md
     ├── repository-workflow.md
+    ├── documentation-style.md
     ├── control-style.md
     ├── python-docstring-style.md
     ├── urdf-xacro-style.md
@@ -63,17 +64,23 @@ curl -fsSL \
 | 코드 리뷰 | `code-review.md` |
 | 커밋 생성 | `commit-style.md` |
 | 여러 ROS package가 연결된 대형 저장소 | `repository-workflow.md` |
+| README / package README / `docs/` 정리, 중복 제거, SDK 설치 문서 작성 | `documentation-style.md` |
 | PID, trajectory tracking, `ros2_control` 등 제어 코드 | `control-style.md`, `safety.md` |
 | URDF, Xacro, SDF | `urdf-xacro-style.md`, 필요 시 `safety.md` |
 | motion command와 실제 하드웨어 | `safety.md` |
 
 순수 Python 함수 수정에는 ROS controller나 URDF 지침을 적용하지 않습니다. 반대로 UR5e driver, MDBOT bringup, MoveIt, Nav2처럼 package·launch·config·controller가 연결된 작업에서는 `repository-workflow.md`로 영향 범위를 먼저 좁힙니다.
 
+문서 정리 작업에서는 `documentation-style.md`를 따라 전역 README, package README, `docs/`의 역할을 분리하고 주제별 기준 문서 하나를 유지합니다. 중복 설명을 여러 곳에 복사하지 않고 링크하며, 오래된 문서를 삭제할 때는 고유 정보와 inbound link를 먼저 확인합니다.
+
 ## 핵심 원칙
 
 - 요청한 범위만 작게 수정
 - 관련 없는 리팩터링과 미래 대비 구조 금지
 - 대형 저장소에서는 package와 실제 실행 경로를 먼저 확인
+- 문서는 주제별 Single Source of Truth를 두고 중복 설명 제거
+- 문서 삭제 전 고유 정보와 참조 링크 확인
+- 외부 SDK 설치는 공식 source, 권장 경로, 설치 확인 방법을 문서화
 - ROS interface, TF frame, controller 이름, 단위, 안전 동작 보존
 - 제어 코드에서는 시간, frame, limit, timeout, command ownership 확인
 - 실제 하드웨어 전에 simulation 또는 dry-run 우선
@@ -95,6 +102,16 @@ AGENTS.md를 따라 요청한 오류만 최소한으로 수정해줘.
 AGENTS.md와 docs/repository-workflow.md를 따라 작업해줘.
 먼저 관련 package, 실행 경로, interface, config, test 범위를 좁힌 뒤 수정해줘.
 저장소 전체를 불필요하게 정리하지 마.
+```
+
+문서 정리:
+
+```text
+AGENTS.md와 docs/documentation-style.md를 따라 문서를 정리해줘.
+전역 README는 index로 유지하고, package README와 docs의 역할을 분리해줘.
+중복된 내용은 기준 문서 하나로 통합하고 링크해줘.
+오래된 문서는 고유 정보와 참조 링크를 확인한 뒤 삭제해줘.
+SDK 같은 외부 dependency는 새 PC에서도 설치할 수 있게 공식 source와 확인 절차를 남겨줘.
 ```
 
 제어 코드:
