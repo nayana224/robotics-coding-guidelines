@@ -5,6 +5,12 @@
 Keep changes simple, reviewable, and safe. Treat this file as the map: follow
 its core rules, then open only the `docs/` guide directly relevant to the task.
 
+This repository provides reusable coding and engineering guidelines for
+AI-assisted robotics software development. Python is the default implementation
+language for new code unless the existing stack, interface, vendor SDK,
+performance requirement, or user request gives a concrete reason to use C/C++ or
+another language.
+
 ## Priority
 
 When rules conflict, follow this order:
@@ -36,6 +42,19 @@ When rules conflict, follow this order:
 - Do not edit generated files directly; edit their source or generator input.
 - Do not commit credentials, tokens, private keys, passwords, or sensitive URLs.
 
+## Language choice
+
+- Follow the language already used by the affected package when it remains
+  appropriate.
+- Prefer Python for algorithms, data processing, ML/PyTorch, experiments, tooling,
+  automation, and `rclpy` components when requirements are satisfied by Python.
+- Prefer C/C++ when the existing component is C/C++-native, a supported vendor API
+  or ROS plugin interface requires it, or measured timing/performance constraints
+  justify it.
+- Do not choose C++ merely because hardware is involved, and do not rewrite a
+  working C++ component in Python merely because Python is the default.
+- Follow `docs/python-style.md` for Python and `docs/cpp-style.md` for C/C++.
+
 ## Large repositories
 
 For multi-package repositories, cross-package changes, or unclear runtime paths,
@@ -56,6 +75,8 @@ follow `docs/repository-workflow.md` before editing.
 - Keep callbacks non-blocking and avoid excessive logging in high-rate paths.
 - Use SI units unless an external interface requires otherwise.
 - Prefer simulation, dry-run, or no-hardware validation before real hardware.
+- Follow `docs/ros2-style.md` for ROS 2 interfaces, QoS, TF, launch, package, MoveIt
+  2, and driver-facing behavior.
 - Follow `docs/safety.md` for motion, hardware, and safety-sensitive changes.
 - Follow `docs/control-style.md` only for controllers, trajectory tracking,
   command generation, `ros2_control`, or timing-sensitive loops.
@@ -69,7 +90,8 @@ follow `docs/repository-workflow.md` before editing.
 - Write comments and docstrings in concise, natural Korean.
 - Explain reasons, constraints, units, frames, ordering, workarounds, or safety
   implications; do not repeat obvious code.
-- Follow `docs/code-style.md` for language, ROS 2, YAML, launch, and build rules.
+- Follow `docs/code-style.md` for language-independent source, configuration,
+  testing, generated-file, and validation rules.
 - Follow `docs/python-docstring-style.md` for Python comments and docstrings.
 - For README, package documentation, `docs/` reorganization, documentation
   cleanup, duplicate removal, or SDK/setup guides, follow
@@ -100,7 +122,13 @@ follow `docs/repository-workflow.md` before editing.
 
 ## Guide map
 
-- `docs/code-style.md`: language, ROS 2, YAML, launch, and build rules
+- `docs/code-style.md`: language-independent source, configuration, testing,
+  generated-file, and validation rules
+- `docs/python-style.md`: Python, NumPy, PyTorch, concurrency, and Python-specific
+  implementation rules
+- `docs/cpp-style.md`: C/C++, ownership, lifecycle, vendor SDK, and high-rate code
+- `docs/ros2-style.md`: ROS 2 interfaces, QoS, TF, launch, MoveIt 2, drivers, and
+  package/build behavior
 - `docs/code-review.md`: review checklist and output format
 - `docs/commit-style.md`: lightweight commit message rules
 - `docs/repository-workflow.md`: large and multi-package repository workflow

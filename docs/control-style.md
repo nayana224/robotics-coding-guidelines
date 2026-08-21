@@ -4,126 +4,94 @@
 
 Use this guide only for feedback controllers, trajectory tracking, command
 generation, `ros2_control` controllers, force or impedance control, and other
-timing-sensitive control loops. Do not apply it to unrelated application,
-visualization, documentation, or data-processing code.
+timing-sensitive control loops.
 
-Follow [`safety.md`](safety.md) whenever the change can publish motion commands,
-change command ownership, or alter stop behavior.
+Use [`ros2-style.md`](ros2-style.md) for general ROS 2 behavior and
+[`safety.md`](safety.md) whenever the change can publish motion commands, change
+command ownership, or alter stop behavior.
 
 ## Time and update period
 
 - Make the intended control rate and time source explicit.
 - Use measured or framework-provided `dt` when the algorithm depends on elapsed
-  time. Do not assume timer configuration equals actual execution period.
+  time. Do not assume configured timer period equals actual execution period.
 - Handle non-positive, non-finite, unexpectedly large, or discontinuous `dt`
   conservatively.
-- Do not mix ROS time, simulation time, steady time, and wall time without an
-  explicit conversion and reason.
-- Detect and report control-loop overruns when timing is safety- or
-  performance-relevant.
+- Do not mix ROS time, simulation time, steady time, and wall time without a clear
+  reason and conversion.
+- Detect control-loop overruns when timing affects safety or performance.
 
 ## Units, frames, and signs
 
-- State the unit and coordinate frame of controller inputs, errors, state, and
-  outputs when they are not obvious from the interface.
-- Keep degree/radian, position/velocity, linear/angular, and body/world-frame
-  conversions at clear boundaries.
+- Make controller input, error, state, and output units and frames explicit when
+  ambiguity is possible.
+- Keep degree/radian, position/velocity, linear/angular, and body/world conversions
+  at clear boundaries.
 - Verify quaternion ordering, angle wrapping, joint-axis direction, and sign
   conventions before tuning gains or reversing commands.
-- Prefer names that expose ambiguous units or frames, such as
-  `yaw_error_rad` or `velocity_command_base_mps`.
+- Prefer names that expose ambiguous units or frames, such as `yaw_error_rad` or
+  `velocity_command_base_mps`.
 
-## Input validity and freshness
+## State validity and freshness
 
-Before using measurements or estimates, consider:
-
-- finite numeric values,
-- timestamp age and ordering,
-- transform availability at the relevant timestamp,
-- sensor or estimator dropout,
-- and physically implausible jumps.
-
-Define the safe behavior for stale or invalid state. Do not continue reusing an
-old observation or command without a documented timeout policy.
+Before using measurements or estimates, consider timestamp age and ordering,
+transform availability, dropout, finite values, and physically implausible jumps.
+Define the controller behavior for stale or invalid state; do not reuse old state or
+commands indefinitely without a timeout policy.
 
 ## Limits and command shaping
 
-- Apply position, velocity, acceleration, jerk, effort, workspace, and hardware
-  limits that are relevant to the commanded interface.
-- Keep the order of filtering, rate limiting, saturation, and final validation
-  explicit.
-- Check the final command for `NaN`, infinity, invalid frames, and out-of-range
-  values before publication or hardware write.
+- Apply the position, velocity, acceleration, jerk, effort, workspace, and hardware
+  limits relevant to the commanded interface.
+- Keep filtering, rate limiting, saturation, and final validation order explicit.
+- Check the final command for invalid numeric values and relevant bounds before it
+  reaches the actuator-facing boundary.
 - Do not weaken URDF, controller, or hardware limits to hide unstable behavior.
-- When limiting one quantity can invalidate another constraint, test the combined
-  behavior rather than each clamp in isolation.
+- When one clamp can violate another constraint, test the combined behavior.
 
-## Controller state
+## Stateful controllers
 
-For stateful controllers such as PID or observers:
+For PID controllers, observers, filters, or other stateful control logic:
 
 - define initialization and reset conditions,
-- prevent or handle integral windup when outputs saturate,
-- make derivative filtering and derivative-on-error or measurement choices
-  explicit when relevant,
-- avoid carrying stale integrator or filter state across incompatible mode
-  changes,
-- and document parameter units and expected operating range.
+- handle integral windup when outputs saturate,
+- make derivative filtering and derivative-on-error or measurement choices explicit
+  when relevant,
+- do not carry incompatible state across mode changes,
+- document parameter units and expected operating range.
 
-Do not add advanced control structure when a simple controller satisfies the
-measured requirement. Do not tune by arbitrary gain changes without recording
-the observed behavior and test conditions.
+Do not add advanced control structure when a simpler controller satisfies the
+measured requirement. Record the observed behavior and test conditions when tuning.
 
-## Command ownership and mode transitions
+## Mode transitions and command continuity
 
-- Ensure only the intended source owns each command interface.
-- Make activation, deactivation, cancellation, timeout, and shutdown behavior
-  explicit.
-- During controller or mode switching, define the initial setpoint and prevent
-  discontinuous commands where practical.
-- If switching fails or state is uncertain, prefer a defined hold or stop state
-  over silently continuing with the previous command.
-- Do not assume controller-manager state, action success, or heartbeat alone
-  proves that commanded motion is safe.
+- Define the initial setpoint during activation or switching.
+- Prevent discontinuous command jumps where practical.
+- Reset or preserve controller state deliberately across activation, deactivation,
+  reset, and mode changes.
+- If switching fails or state becomes uncertain, use the stop or hold behavior
+  defined by [`safety.md`](safety.md).
 
-## High-rate and real-time paths
+## High-rate paths
 
-For controller `update()` methods and other high-rate paths:
-
-- avoid blocking I/O, sleeps, service calls, action waits, and unbounded retries,
-- avoid excessive logging and repeated allocations where timing matters,
-- keep locks short and do not hold them across external calls,
-- bound work per cycle,
-- and move diagnostics or slow computation out of the critical path when
-  practical.
-
-Do not claim real-time safety unless the complete execution path, memory
-behavior, synchronization, and dependencies have been verified.
+For controller `update()` methods and similar high-rate paths, keep work bounded and
+avoid blocking operations, unbounded retries, excessive logging, and unnecessary
+allocation when timing matters. Do not claim real-time safety unless the complete
+execution path, synchronization, memory behavior, and dependencies have been
+verified.
 
 ## Validation
 
-Select checks relevant to the changed controller. Useful cases include:
+Choose cases that exercise the changed controller behavior, such as:
 
 - zero error and steady state,
 - large initial error or setpoint step,
 - saturation and anti-windup,
 - stale, delayed, missing, or malformed state,
-- irregular `dt` and control-loop overrun,
-- repeated start, stop, reset, and mode transitions,
-- cancellation and shutdown,
-- and command ownership conflicts.
+- irregular `dt` and loop overrun,
+- start, stop, reset, cancellation, and mode transitions.
 
-When performance matters, report suitable measures such as tracking error,
-overshoot, settling behavior, command saturation, and loop-period jitter. Do not
-require every metric for every controller.
-
-Validate in the safest practical order:
-
-1. pure calculations and boundary tests,
-2. package build and focused tests,
-3. no-hardware or simulation execution,
-4. reduced-speed operation in a controlled workspace,
-5. and normal operation only after earlier checks pass.
-
-Record controller parameters, relevant rates, test conditions, and remaining
-hardware risk so results can be reproduced.
+When performance matters, report relevant measures such as tracking error,
+overshoot, settling behavior, command saturation, or loop-period jitter. Record the
+controller parameters, rates, test conditions, checks not run, and remaining hardware
+risk.

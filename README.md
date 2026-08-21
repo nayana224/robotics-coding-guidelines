@@ -1,8 +1,22 @@
-# Codex Readability Rules
+# Robotics Coding Guidelines
 
-Codex와 GPT가 ROS 2와 로봇 프로젝트를 읽기 쉽고 안전하게 수정하도록 돕는 지침 모음입니다.
+AI-assisted robotics software development를 위한 재사용 가능한 코딩·리뷰·안전 지침 모음입니다.
 
-`AGENTS.md`는 항상 따르고, `docs/`에서는 현재 작업과 직접 관련된 문서만 확인합니다. 모든 문서를 매번 읽는 방식이 아닙니다.
+이 저장소는 논문 공부법이나 일반적인 ChatGPT 응답 스타일을 정의하는 곳이 아닙니다. 실제 프로젝트에서 AI가 Python, C/C++, ROS 2, MoveIt 2, `ros2_control`, 카메라·센서·로봇 SDK, URDF/Xacro, 제어 및 하드웨어 관련 코드를 읽고 수정할 때 따를 engineering guideline을 제공합니다.
+
+`AGENTS.md`는 항상 핵심 지도 역할을 하고, `docs/`에서는 현재 작업과 직접 관련된 문서만 확인합니다. 모든 문서를 매번 읽는 방식이 아닙니다.
+
+## 기본 언어 정책
+
+Python을 새 코드의 기본 구현 언어로 사용합니다. 다만 다음과 같은 경우에는 기존 C/C++ stack을 유지하거나 C/C++을 선택합니다.
+
+- 기존 ROS 2 package가 `rclcpp` 기반인 경우
+- `ros2_control` hardware interface나 C++ plugin interface를 구현하는 경우
+- MoveIt 2 또는 다른 C++-native component를 직접 확장하는 경우
+- vendor SDK의 공식·주요 API가 C/C++인 경우
+- 측정된 timing, latency, throughput 요구사항이 C/C++을 필요로 하는 경우
+
+하드웨어를 사용한다는 이유만으로 C++을 선택하지 않고, 반대로 Python이 기본이라는 이유만으로 정상적인 C++ component를 Python으로 다시 작성하지 않습니다.
 
 ## 가장 쉬운 설치 방법
 
@@ -12,21 +26,24 @@ Codex와 GPT가 ROS 2와 로봇 프로젝트를 읽기 쉽고 안전하게 수�
 cd ~/inpyo_ws/new_robot_ws
 ```
 
-아래 명령어 한 줄을 실행합니다.
+아래 명령어를 실행합니다.
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/nayana224/my_instruction/main/bootstrap.sh \
+  https://raw.githubusercontent.com/nayana224/robotics-coding-guidelines/main/bootstrap.sh \
   | bash
 ```
 
-설치 후 다음 파일이 생깁니다.
+설치 후 다음 파일들이 생성됩니다.
 
 ```text
 new_robot_ws/
 ├── AGENTS.md
 └── docs/
     ├── code-style.md
+    ├── python-style.md
+    ├── cpp-style.md
+    ├── ros2-style.md
     ├── code-review.md
     ├── commit-style.md
     ├── repository-workflow.md
@@ -37,7 +54,7 @@ new_robot_ws/
     └── safety.md
 ```
 
-이제 Codex나 GPT에게 다음처럼 요청합니다.
+이후 Codex나 GPT에게 다음처럼 요청할 수 있습니다.
 
 ```text
 이 workspace의 AGENTS.md를 먼저 따라줘.
@@ -50,7 +67,7 @@ new_robot_ws/
 
 ```bash
 curl -fsSL \
-  https://raw.githubusercontent.com/nayana224/my_instruction/main/bootstrap.sh \
+  https://raw.githubusercontent.com/nayana224/robotics-coding-guidelines/main/bootstrap.sh \
   | bash -s -- . --force
 ```
 
@@ -60,73 +77,61 @@ curl -fsSL \
 
 | 작업 | 확인할 문서 |
 |---|---|
-| 작은 코드 수정 | `AGENTS.md`, 필요한 `code-style.md` 절 |
+| 일반적인 코드 수정 | `AGENTS.md`, `code-style.md` |
+| Python / NumPy / PyTorch | `python-style.md` |
+| C/C++ / vendor SDK | `cpp-style.md` |
+| ROS 2 / MoveIt 2 / QoS / TF / launch | `ros2-style.md` + 해당 언어 guide |
 | 코드 리뷰 | `code-review.md` |
 | 커밋 생성 | `commit-style.md` |
 | 여러 ROS package가 연결된 대형 저장소 | `repository-workflow.md` |
-| README / package README / `docs/` 정리, 중복 제거, SDK 설치 문서 작성 | `documentation-style.md` |
+| README / package README / `docs/` 정리 | `documentation-style.md` |
 | PID, trajectory tracking, `ros2_control` 등 제어 코드 | `control-style.md`, `safety.md` |
 | URDF, Xacro, SDF | `urdf-xacro-style.md`, 필요 시 `safety.md` |
 | motion command와 실제 하드웨어 | `safety.md` |
 
-순수 Python 함수 수정에는 ROS controller나 URDF 지침을 적용하지 않습니다. 반대로 UR5e driver, MDBOT bringup, MoveIt, Nav2처럼 package·launch·config·controller가 연결된 작업에서는 `repository-workflow.md`로 영향 범위를 먼저 좁힙니다.
-
-문서 정리 작업에서는 `documentation-style.md`를 따라 전역 README, package README, `docs/`의 역할을 분리하고 주제별 기준 문서 하나를 유지합니다. 중복 설명을 여러 곳에 복사하지 않고 링크하며, 오래된 문서를 삭제할 때는 고유 정보와 inbound link를 먼저 확인합니다.
+예를 들어 순수 Python 데이터 처리 함수 수정이라면 `AGENTS.md` + `code-style.md` + `python-style.md`면 충분합니다. MoveIt 2 C++ component라면 `cpp-style.md`와 `ros2-style.md`를 함께 확인합니다. `ros2_control` hardware interface나 실제 로봇 command path까지 포함되면 `control-style.md`와 `safety.md`를 추가합니다.
 
 ## 핵심 원칙
 
 - 요청한 범위만 작게 수정
-- 관련 없는 리팩터링과 미래 대비 구조 금지
-- 대형 저장소에서는 package와 실제 실행 경로를 먼저 확인
+- 관련 없는 리팩터링, 이름 변경, 포맷 정리 금지
+- 기존 project convention과 public interface 보존
+- Python은 기본 언어지만 기존 stack과 interface를 우선 존중
+- ROS interface, QoS, TF frame, controller 이름, 단위, launch argument 보존
+- command ownership, stop behavior, state transition, failure recovery를 명시적으로 유지
+- 실제 하드웨어 전에 가능한 simulation, dry-run, no-hardware 검증 우선
 - 문서는 주제별 Single Source of Truth를 두고 중복 설명 제거
-- 문서 삭제 전 고유 정보와 참조 링크 확인
-- 외부 SDK 설치는 공식 source, 권장 경로, 설치 확인 방법을 문서화
-- ROS interface, TF frame, controller 이름, 단위, 안전 동작 보존
-- 제어 코드에서는 시간, frame, limit, timeout, command ownership 확인
-- 실제 하드웨어 전에 simulation 또는 dry-run 우선
 - 커밋은 `<type>: <한글 요약>` 형식
 - 실행한 검증, 실행하지 못한 검증, 남은 위험 보고
 
 ## 요청 예시
 
-일반 수정:
+Python 작업:
 
 ```text
-AGENTS.md를 따라 요청한 오류만 최소한으로 수정해줘.
-관련 없는 리팩터링은 하지 말고, 변경 후 검증 결과와 남은 위험을 알려줘.
+AGENTS.md, docs/code-style.md, docs/python-style.md를 따라 수정해줘.
+현재 구조와 public interface를 유지하고 요청한 부분만 최소한으로 변경해줘.
 ```
 
-대형 ROS 저장소:
+ROS 2 C++ / MoveIt 2 작업:
 
 ```text
-AGENTS.md와 docs/repository-workflow.md를 따라 작업해줘.
-먼저 관련 package, 실행 경로, interface, config, test 범위를 좁힌 뒤 수정해줘.
-저장소 전체를 불필요하게 정리하지 마.
+AGENTS.md, docs/cpp-style.md, docs/ros2-style.md를 따라 작업해줘.
+관련 package와 runtime path를 먼저 확인하고 ROS interface, QoS, TF, controller 이름은 의도하지 않는 한 변경하지 마.
 ```
 
-문서 정리:
+제어·하드웨어 작업:
 
 ```text
-AGENTS.md와 docs/documentation-style.md를 따라 문서를 정리해줘.
-전역 README는 index로 유지하고, package README와 docs의 역할을 분리해줘.
-중복된 내용은 기준 문서 하나로 통합하고 링크해줘.
-오래된 문서는 고유 정보와 참조 링크를 확인한 뒤 삭제해줘.
-SDK 같은 외부 dependency는 새 PC에서도 설치할 수 있게 공식 source와 확인 절차를 남겨줘.
-```
-
-제어 코드:
-
-```text
-AGENTS.md, docs/control-style.md, docs/safety.md를 따라 수정해줘.
-control period, dt, frame, limit, timeout, command ownership, safe-stop을 확인해줘.
-실제 하드웨어 전에 가능한 simulation 검증을 먼저 해줘.
+AGENTS.md, docs/ros2-style.md, docs/control-style.md, docs/safety.md를 따라 수정해줘.
+control period, frame, limit, timeout, command ownership, safe-stop을 확인하고 실제 하드웨어 전에 가능한 simulation 검증을 먼저 해줘.
 ```
 
 코드 리뷰:
 
 ```text
 AGENTS.md와 docs/code-review.md를 따라 리뷰해줘.
-변경과 관련된 항목만 확인하고 실제 위험이 있는 내용만 보고해줘.
+변경과 관련된 실제 오류, 안전 문제, 유지보수 위험만 우선적으로 보고해줘.
 ```
 
 ## 직접 저장소를 보관하는 방법
@@ -136,18 +141,26 @@ AGENTS.md와 docs/code-review.md를 따라 리뷰해줘.
 ```bash
 mkdir -p ~/.local/share
 git clone \
-  https://github.com/nayana224/my_instruction.git \
-  ~/.local/share/my_instruction
+  https://github.com/nayana224/robotics-coding-guidelines.git \
+  ~/.local/share/robotics-coding-guidelines
 ```
 
 최신화:
 
 ```bash
-git -C ~/.local/share/my_instruction pull --ff-only
+git -C ~/.local/share/robotics-coding-guidelines pull --ff-only
 ```
 
 새 workspace에 적용:
 
 ```bash
-bash ~/.local/share/my_instruction/install.sh ~/inpyo_ws/new_robot_ws
+bash ~/.local/share/robotics-coding-guidelines/install.sh ~/inpyo_ws/new_robot_ws
 ```
+
+## 저장소의 역할
+
+이 저장소에는 여러 robotics project에 반복 적용할 coding/engineering rule만 둡니다.
+
+특정 robot, camera model, ROS distribution, workspace path, topic name, TF tree, dataset definition처럼 project-specific한 정보는 각 실제 project의 `AGENTS.md`, `README.md`, `docs/`, config에 둡니다.
+
+논문 읽기·학습 방식처럼 coding과 독립적인 instruction은 별도 repository에서 관리하는 것을 권장합니다.

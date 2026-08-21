@@ -2,41 +2,55 @@
 
 ## Scope
 
-Use this guide for changes that can publish motion commands, change command
-ownership, alter stop behavior, or affect autonomous execution.
+Use this guide only for changes that can cause or sustain physical motion, change
+command ownership, alter stop behavior, or affect autonomous execution.
+
+General ROS 2 interface and callback rules belong in
+[`ros2-style.md`](ros2-style.md). Controller timing and limit behavior belongs in
+[`control-style.md`](control-style.md).
 
 ## Required principles
 
-- Keep command ownership and stop behavior explicit.
-- Reject invalid state transitions before publishing a command.
-- On uncertain or failed input, prefer the safer non-moving state.
-- Do not hide motion, retry, or recovery behavior inside generic wrappers.
-- Keep safety checks close to the boundary where untrusted data enters.
-- Avoid blocking ROS callbacks with waits, retries, hardware I/O, or subprocesses.
-- Make timer, future, thread, process, and shutdown cleanup ownership explicit.
+- Make the active command owner explicit.
+- Define what happens on stop, cancellation, timeout, shutdown, and exception.
+- Reject invalid state transitions before issuing a command.
+- On stale, invalid, missing, or uncertain state, prefer a defined non-moving or
+  otherwise safer state.
+- Do not hide motion, retry, recovery, or command switching inside generic wrappers.
+- Keep hardware and workspace limits intact unless an intentional, reviewed change
+  updates every affected layer.
+- Ensure cleanup paths cannot leave a previous motion command active unintentionally.
 
-## Validation order
+## First real-hardware test
 
-Before testing on a real robot:
+Before commanding real hardware, verify the affected motion and stop paths with the
+safest practical method available. Prefer this order:
 
-1. Review the affected command and state-transition paths.
-2. Run static checks and unit tests for pure logic when available.
-3. Build and test the affected ROS 2 package.
-4. Verify topics, services, actions, parameters, QoS, and TF frames.
-5. Test without hardware or in simulation when practical.
-6. Use reduced speed and a controlled workspace for the first real-robot test.
+1. inspect command ownership and state transitions,
+2. test pure decision logic and boundaries,
+3. build and run focused package tests,
+4. validate without hardware or in simulation,
+5. use reduced speed or force and a controlled workspace for the first hardware
+   test,
+6. return to normal operating limits only after expected stop and recovery behavior
+   is confirmed.
+
+Do not claim a behavior is hardware-safe based only on a successful build, planner
+result, action success, or heartbeat.
 
 ## Review questions
 
-- Can any failure path publish an unintended command?
-- Is repeated, delayed, malformed, or cancelled input handled safely?
-- Is the active command owner always clear?
-- Can shutdown or exception handling leave motion active?
-- Are units, coordinate frames, limits, and timeout behavior explicit?
-- Is the recovery path safer than continuing with uncertain state?
+- Can any failure path issue or preserve an unintended command?
+- Is repeated, delayed, malformed, stale, or cancelled input handled safely?
+- Is the command owner unambiguous during startup, switching, and shutdown?
+- Can an exception, disconnect, or partial initialization leave motion enabled?
+- Are timeout and recovery behaviors explicit?
+- Does recovery move toward a safer state rather than continue from uncertain state?
+- Are relevant physical limits still enforced at the final command boundary?
 
 ## Documentation
 
-Document safety-relevant assumptions and side effects in concise Korean comments
-or docstrings. Keep ROS interface names, units, coordinate frames, API names,
-and established technical terms in English.
+Document only safety assumptions that a maintainer must know to avoid unsafe
+behavior, such as command ownership, required ordering, stop semantics, physical
+limits, or recovery constraints. Follow
+[`python-docstring-style.md`](python-docstring-style.md) for Python documentation.

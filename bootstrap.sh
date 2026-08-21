@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPOSITORY_URL="https://github.com/nayana224/my_instruction.git"
-REFERENCE="${MY_INSTRUCTION_REF:-main}"
+REPOSITORY_URL="https://github.com/nayana224/robotics-coding-guidelines.git"
+REFERENCE="${ROBOTICS_CODING_GUIDELINES_REF:-${MY_INSTRUCTION_REF:-main}}"
 TARGET_DIR="${1:-.}"
 
 shift_count=0
@@ -26,8 +26,8 @@ cleanup() {
 trap cleanup EXIT
 
 echo "지침 저장소를 임시로 가져오는 중입니다..."
-git clone --quiet --depth 1 --branch "$REFERENCE" "$REPOSITORY_URL" "$TEMP_DIR/my_instruction"
+git clone --quiet --depth 1 --branch "$REFERENCE" "$REPOSITORY_URL" "$TEMP_DIR/robotics-coding-guidelines"
 
-bash "$TEMP_DIR/my_instruction/install.sh" "$TARGET_DIR" "$@"
+bash "$TEMP_DIR/robotics-coding-guidelines/install.sh" "$TARGET_DIR" "$@"
 
 echo "완료: $(realpath "$TARGET_DIR")에 지침을 설치했습니다."
