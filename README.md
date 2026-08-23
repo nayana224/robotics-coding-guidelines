@@ -95,6 +95,7 @@ curl -fsSL \
 
 - 요청한 범위만 작게 수정
 - 관련 없는 리팩터링, 이름 변경, 포맷 정리 금지
+- 짧거나 영리한 코드보다 한 번에 이해할 수 있는 명백한 코드 우선
 - 기존 project convention과 public interface 보존
 - Python은 기본 언어지만 기존 stack과 interface를 우선 존중
 - ROS interface, QoS, TF frame, controller 이름, 단위, launch argument 보존
