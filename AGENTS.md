@@ -34,7 +34,17 @@ When rules conflict, follow this order:
 
 ## Scope and simplicity
 
+- Prefer obvious code over clever code. Optimize for the next reader, not for the
+  fewest lines or the most compact expression.
 - Prefer explicit code with the fewest concepts needed for the current task.
+- Keep the main control flow visible. Prefer guard clauses or early returns when
+  they reduce nesting and make success, failure, cancellation, or stop behavior
+  easier to follow.
+- If a function cannot be understood in one pass, first simplify its control flow;
+  split it only along meaningful responsibilities, state boundaries, or side
+  effects. Do not split functions merely to satisfy a line-count target.
+- Avoid tricky expressions, hidden side effects, and dense one-liners when a
+  straightforward statement sequence is easier to review.
 - Add abstractions only when they reduce total reasoning, testing, or change cost.
 - Do not design for hypothetical future reuse.
 - Keep cohesive code together; do not extract trivial pass-through helpers.
@@ -90,6 +100,9 @@ follow `docs/repository-workflow.md` before editing.
 - Write comments and docstrings in concise, natural Korean.
 - Explain reasons, constraints, units, frames, ordering, workarounds, or safety
   implications; do not repeat obvious code.
+- Prefer rewriting unclear code over adding comments that merely explain how the
+  code works. Keep comments for why a constraint, workaround, ordering rule, or
+  non-obvious decision exists.
 - Follow `docs/code-style.md` for language-independent source, configuration,
   testing, generated-file, and validation rules.
 - Follow `docs/python-docstring-style.md` for Python comments and docstrings.
@@ -116,6 +129,8 @@ follow `docs/repository-workflow.md` before editing.
 - When creating commits, follow `docs/commit-style.md` and use
   `<type>: <한글 요약>`.
 - Keep one logical change per commit.
+- Separate code movement, broad formatting, or mechanical cleanup from behavior
+  changes so each diff remains easy to review.
 - When reviewing code, inspect before editing and follow `docs/code-review.md`.
 - Report only actionable findings with concrete evidence and the smallest
   practical fix.
