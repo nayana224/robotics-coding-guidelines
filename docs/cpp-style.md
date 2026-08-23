@@ -29,6 +29,8 @@ that choice remains appropriate.
 
 - Follow the C++ standard, compiler options, formatter, and linter already configured
   by the project.
+- Prefer straightforward control flow over clever expressions, deep nesting, or
+  compressed logic.
 - Prefer ordinary functions and concrete types over unnecessary generic machinery.
 - Prefer composition over inheritance.
 - Avoid deep inheritance, complex templates, macros, and metaprogramming unless they
